@@ -15,10 +15,7 @@ import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.serializer.*;
 
 import java.time.Duration;
 
@@ -58,9 +55,29 @@ public class RedisConfig extends CachingConfigurerSupport {
      *
      * @return
      */
-    private RedisSerializer valueSerializer() {
+    private RedisSerializer genericJackson2JsonSerializer() {
         GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer = new GenericJackson2JsonRedisSerializer();
         return genericJackson2JsonRedisSerializer;
+    }
+
+    /**
+     * Using GenericJackson2JsonRedisSerializer
+     *
+     * @return
+     */
+    private RedisSerializer jackson2JsonSerializer() {
+        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
+        return jackson2JsonRedisSerializer;
+    }
+
+    /**
+     * Using JdkSerializationRedisSerializer
+     *
+     * @return
+     */
+    private RedisSerializer jdkSerializer() {
+        JdkSerializationRedisSerializer jdkSerializationRedisSerializer = new JdkSerializationRedisSerializer();
+        return jdkSerializationRedisSerializer;
     }
 
     /**
@@ -76,7 +93,7 @@ public class RedisConfig extends CachingConfigurerSupport {
 
     private RedisSerializationContext.SerializationPair<Object> valuePair() {
         RedisSerializationContext.SerializationPair<Object> valuePair =
-                RedisSerializationContext.SerializationPair.fromSerializer(valueSerializer());
+                RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonSerializer());
         return valuePair;
     }
 
@@ -105,8 +122,8 @@ public class RedisConfig extends CachingConfigurerSupport {
         template.setKeySerializer(keySerializer());
         template.setHashKeySerializer(keySerializer());
 
-        template.setValueSerializer(valueSerializer());
-        template.setHashValueSerializer(valueSerializer());
+        template.setValueSerializer(jdkSerializer());
+        template.setHashValueSerializer(jdkSerializer());
 
         template.setStringSerializer(stringRedisSerializer);
         template.afterPropertiesSet();

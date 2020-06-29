@@ -5,12 +5,14 @@ import com.mnzit.spring.redis.redisdemo.exception.ResourceNotFoundException;
 import com.mnzit.spring.redis.redisdemo.repository.CommentRepository;
 import com.mnzit.spring.redis.redisdemo.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @author Manjit Shakya
@@ -25,14 +27,18 @@ public class CommentController {
     @Autowired
     private PostRepository postRepository;
 
+    @Cacheable(key = "#postId", value = "comment-all")
     @GetMapping("/posts/{postId}/comments")
-    public Page<Comment> getAllCommentsByPostId(@PathVariable (value = "postId") Long postId,
+    public List<Comment> getAllCommentsByPostId(@PathVariable(value = "postId") Long postId,
                                                 Pageable pageable) {
-        return commentRepository.findByPostId(postId, pageable);
+
+        Page<Comment> commentPage = commentRepository.findByPostId(postId, pageable);
+
+        return commentPage.getContent();
     }
 
     @PostMapping("/posts/{postId}/comments")
-    public Comment createComment(@PathVariable (value = "postId") Long postId,
+    public Comment createComment(@PathVariable(value = "postId") Long postId,
                                  @Valid @RequestBody Comment comment) {
         return postRepository.findById(postId).map(post -> {
             comment.setPost(post);
@@ -42,9 +48,9 @@ public class CommentController {
 
     @PutMapping("/posts/{postId}/comments/{commentId}")
     public Comment updateComment(@PathVariable(value = "postId") Long postId,
-                                 @PathVariable (value = "commentId") Long commentId,
+                                 @PathVariable(value = "commentId") Long commentId,
                                  @Valid @RequestBody Comment commentRequest) {
-        if(!postRepository.existsById(postId)) {
+        if (!postRepository.existsById(postId)) {
             throw new ResourceNotFoundException("PostId " + postId + " not found");
         }
 
@@ -55,8 +61,8 @@ public class CommentController {
     }
 
     @DeleteMapping("/posts/{postId}/comments/{commentId}")
-    public ResponseEntity<?> deleteComment(@PathVariable (value = "postId") Long postId,
-                                           @PathVariable (value = "commentId") Long commentId) {
+    public ResponseEntity<?> deleteComment(@PathVariable(value = "postId") Long postId,
+                                           @PathVariable(value = "commentId") Long commentId) {
         return commentRepository.findByIdAndPostId(commentId, postId).map(comment -> {
             commentRepository.delete(comment);
             return ResponseEntity.ok().build();

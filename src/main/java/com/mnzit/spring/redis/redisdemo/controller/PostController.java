@@ -1,17 +1,17 @@
 package com.mnzit.spring.redis.redisdemo.controller;
 
+import com.mnzit.spring.redis.redisdemo.annotation.Cacheable;
+import com.mnzit.spring.redis.redisdemo.dto.GenericResponse;
 import com.mnzit.spring.redis.redisdemo.entity.Post;
 import com.mnzit.spring.redis.redisdemo.exception.ResourceNotFoundException;
 import com.mnzit.spring.redis.redisdemo.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Manjit Shakya
@@ -23,16 +23,25 @@ public class PostController {
     @Autowired
     private PostRepository postRepository;
 
-    @Cacheable(cacheNames = "posts")
+    @Cacheable(cacheName = "posts", cacheValue = "'posts'", ttl = 2)
     @GetMapping("/posts")
-    public Page<Post> getAllPosts(Pageable pageable) {
-        return postRepository.findAll(pageable);
+    public GenericResponse getAllPosts(Pageable pageable) {
+        return GenericResponse.builder()
+                .resultCode("0")
+                .resultDescription("Posts Fetched Successfully")
+                .data(postRepository.findAll(pageable))
+                .build();
+//        return postRepository.findAll(pageable).getContent();
     }
 
-    @Cacheable(cacheNames = "posts", key = "#postId")
+    @Cacheable(cacheName = "posts", cacheValue = "'posts-'.toUpperCase().concat(#postId)", ttl = 10, timeUnit = TimeUnit.SECONDS)
     @GetMapping("/posts/{postId}")
-    public Optional<Post> getPost(@PathVariable Long postId) {
-        return postRepository.findById(postId);
+    public GenericResponse getPost(@PathVariable Long postId) {
+        return GenericResponse.builder()
+                .resultCode("0")
+                .resultDescription("Post Fetched Successfully")
+                .data(postRepository.findById(postId).get())
+                .build();
     }
 
     @PostMapping("/posts")
