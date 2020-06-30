@@ -1,18 +1,32 @@
 package com.mnzit.spring.redis.redisdemo.service;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author Manjit Shakya
  * @email manjit.shakya@f1soft.com
  */
 public interface RedisCacheService {
 
-    Object get(String cacheName, Object cacheKey);
+    void set(String cacheKey, Object cacheValue, long ttl, TimeUnit timeUnit);
 
-    Object set(String[] cacheNames, Object cacheKey, Object cacheValue);
+    void set(String cacheKey, Object cacheValue);
 
-    Object clear(String[] cacheNames, Object cacheKey);
+    <T> T get(String key, Class<T> type);
 
-    Object clear(String[] cacheNames);
+    void hSet(String cacheName, Object cacheKey, Object cacheValue, long ttl, TimeUnit timeUnit);
+
+    void hSet(String cacheName, Object cacheKey, Object cacheValue);
+
+    void hSet(String[] cacheNames, Object cacheKey, Object cacheValue, long ttl, TimeUnit timeUnit);
+
+    void hSet(String[] cacheNames, Object cacheKey, Object cacheValue);
+
+    Object hGet(String cacheName, Object cacheKey);
 
     Boolean clearAll();
+
+    Boolean clear(String[] cacheNames);
+
+    Boolean clear(String[] cacheNames, Object cacheKey);
 }

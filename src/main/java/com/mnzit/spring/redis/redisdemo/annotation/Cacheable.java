@@ -1,5 +1,6 @@
 package com.mnzit.spring.redis.redisdemo.annotation;
 
+import com.mnzit.spring.redis.redisdemo.enums.Type;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.ElementType;
@@ -17,22 +18,9 @@ import java.util.concurrent.TimeUnit;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Cacheable {
 
-    /**
-     * The name of this Cache instance, optional.
-     * If you do not specify, It will auto generate one.
-     * The name is used to display statistics information and as part of key prefix when using a remote cache.
-     *
-     * @return the name of the cache
-     */
     String cacheName() default "";
 
-    /**
-     * Specify the key by expression script, optional. If not specified,
-     * use all parameters of the target method and keyConvertor to generate one.
-     *
-     * @return an expression script which specifies key
-     */
-    String cacheValue() default "";
+    String hashName() default "";
 
     /**
      * Expression script used for conditioning the method caching, the cache is not
@@ -58,5 +46,12 @@ public @interface Cacheable {
      *
      * @return the expire time
      */
-    int ttl() default 1;
+    long ttl() default 1;
+
+    /**
+     * The type of data stored.
+     *
+     * @return type of data
+     */
+    Type type() default Type.STRING;
 }

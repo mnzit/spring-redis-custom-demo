@@ -1,6 +1,7 @@
 package com.mnzit.spring.redis.redisdemo.controller;
 
 import com.mnzit.spring.redis.redisdemo.annotation.Cacheable;
+import com.mnzit.spring.redis.redisdemo.enums.Type;
 import com.mnzit.spring.redis.redisdemo.dto.GenericResponse;
 import com.mnzit.spring.redis.redisdemo.entity.Post;
 import com.mnzit.spring.redis.redisdemo.exception.ResourceNotFoundException;
@@ -11,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Manjit Shakya
@@ -23,7 +23,7 @@ public class PostController {
     @Autowired
     private PostRepository postRepository;
 
-    @Cacheable(cacheName = "posts", cacheValue = "'posts'", ttl = 2)
+    @Cacheable(cacheName = "'POSTS:ALL'", ttl = 3)
     @GetMapping("/posts")
     public GenericResponse getAllPosts(Pageable pageable) {
         return GenericResponse.builder()
@@ -34,7 +34,8 @@ public class PostController {
 //        return postRepository.findAll(pageable).getContent();
     }
 
-    @Cacheable(cacheName = "posts", cacheValue = "'posts-'.toUpperCase().concat(#postId)", ttl = 10, timeUnit = TimeUnit.SECONDS)
+    @Cacheable(hashName = "POSTS", cacheName = "'post:'.concat(#postId)", ttl = 3, type = Type.HASHMAP, condition = "#postId > 1045")
+//    @Cacheable(cacheName = "'POSTS:'.concat(#postId)", ttl = 3)
     @GetMapping("/posts/{postId}")
     public GenericResponse getPost(@PathVariable Long postId) {
         return GenericResponse.builder()

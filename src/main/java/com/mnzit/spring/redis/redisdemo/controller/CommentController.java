@@ -27,7 +27,6 @@ public class CommentController {
     @Autowired
     private PostRepository postRepository;
 
-    @Cacheable(key = "#postId", value = "comment-all")
     @GetMapping("/posts/{postId}/comments")
     public List<Comment> getAllCommentsByPostId(@PathVariable(value = "postId") Long postId,
                                                 Pageable pageable) {

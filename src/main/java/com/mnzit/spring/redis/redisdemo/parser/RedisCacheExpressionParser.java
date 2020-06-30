@@ -1,4 +1,4 @@
-package com.mnzit.spring.redis.redisdemo.aspect;
+package com.mnzit.spring.redis.redisdemo.parser;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.CodeSignature;
@@ -11,7 +11,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
  * @author Manjit Shakya
  * @email manjit.shakya@f1soft.com
  */
-public class CacheExpressionParser {
+public class RedisCacheExpressionParser {
 
     private final static ExpressionParser expressionParser = new SpelExpressionParser();
 
@@ -28,8 +28,13 @@ public class CacheExpressionParser {
         return context;
     }
 
-    public static String getCacheKeyFromAnnotationKeyValue(StandardEvaluationContext context, String key){
+    public static String getCacheKeyFromAnnotationKeyValue(StandardEvaluationContext context, String key) {
         Expression expression = expressionParser.parseExpression(key);
         return (String) expression.getValue(context);
+    }
+
+    public static Boolean parseCondition(StandardEvaluationContext context, String condition) {
+        Expression expression = expressionParser.parseExpression(condition);
+        return expression.getValue(context, Boolean.class);
     }
 }
