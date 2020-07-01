@@ -22,7 +22,11 @@ public interface RedisCacheService {
 
     void hSet(String[] cacheNames, Object cacheKey, Object cacheValue);
 
-    Object hGet(String cacheName, Object cacheKey);
+    <T> T hGet(String cacheName, Object cacheKey, Class<T> type);
+
+    void expire(String key, long ttl, TimeUnit timeUnit);
+
+    Boolean hasKey(String key);
 
     Boolean clearAll();
 

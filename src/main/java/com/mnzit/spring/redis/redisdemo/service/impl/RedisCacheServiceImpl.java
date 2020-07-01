@@ -82,11 +82,27 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     }
 
     @Override
-    public Object hGet(String cacheName, Object cacheKey) {
+    public <T> T hGet(String cacheName, Object cacheKey, Class<T> type) {
         if (StringUtils.isNullOrEmpty(cacheName) || cacheKey == null) {
             throw new IllegalArgumentException("Cache name or cache key can not be null!");
         }
-        return hashOperations.get(cacheName, cacheKey);
+        return (T) hashOperations.get(cacheName, cacheKey);
+    }
+
+    @Override
+    public void expire(String cacheName, long ttl, TimeUnit timeUnit) {
+        if (StringUtils.isNullOrEmpty(cacheName) ) {
+            throw new IllegalArgumentException("Cache Key cannot be empty!");
+        }
+        redisTemplate.expire(cacheName, ttl, timeUnit);
+    }
+
+    @Override
+    public Boolean hasKey(String key) {
+        if (StringUtils.isNullOrEmpty(key) ) {
+            throw new IllegalArgumentException("Cache Key cannot be empty!");
+        }
+        return redisTemplate.hasKey(key);
     }
 
     @Override
@@ -121,4 +137,5 @@ public class RedisCacheServiceImpl implements RedisCacheService {
         }
         return true;
     }
+
 }

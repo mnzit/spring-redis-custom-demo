@@ -1,7 +1,7 @@
 package com.mnzit.spring.redis.redisdemo.controller;
 
 import com.mnzit.spring.redis.redisdemo.annotation.Cacheable;
-import com.mnzit.spring.redis.redisdemo.enums.Type;
+import com.mnzit.spring.redis.redisdemo.constants.KeyConstant;
 import com.mnzit.spring.redis.redisdemo.dto.GenericResponse;
 import com.mnzit.spring.redis.redisdemo.entity.Post;
 import com.mnzit.spring.redis.redisdemo.exception.ResourceNotFoundException;
@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Manjit Shakya
@@ -23,7 +24,6 @@ public class PostController {
     @Autowired
     private PostRepository postRepository;
 
-    @Cacheable(cacheName = "'POSTS:ALL'", ttl = 3)
     @GetMapping("/posts")
     public GenericResponse getAllPosts(Pageable pageable) {
         return GenericResponse.builder()
@@ -34,8 +34,8 @@ public class PostController {
 //        return postRepository.findAll(pageable).getContent();
     }
 
-    @Cacheable(hashName = "POSTS", cacheName = "'post:'.concat(#postId)", ttl = 3, type = Type.HASHMAP, condition = "#postId > 1045")
-//    @Cacheable(cacheName = "'POSTS:'.concat(#postId)", ttl = 3)
+    //    @Cacheable(identifier = "POSTS", cacheName = KeyConstant.POST + ".concat(':'+#postId)", ttl = 30, type = Type.HASHMAP, condition = "#postId >= 1033", timeUnit = TimeUnit.SECONDS)
+    @Cacheable(cacheName = KeyConstant.POST + ".concat(':'+#postId)", ttl = 30, condition = "#postId >= 1033", timeUnit = TimeUnit.SECONDS)
     @GetMapping("/posts/{postId}")
     public GenericResponse getPost(@PathVariable Long postId) {
         return GenericResponse.builder()

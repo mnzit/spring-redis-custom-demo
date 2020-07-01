@@ -7,6 +7,9 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -18,9 +21,15 @@ import java.util.concurrent.TimeUnit;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Cacheable {
 
+    /**
+     * Name of cache key name
+     */
     String cacheName() default "";
 
-    String hashName() default "";
+    /**
+     * Name of hash in case Hash is used
+     */
+    String identifier() default "HASH";
 
     /**
      * Expression script used for conditioning the method caching, the cache is not
@@ -54,4 +63,6 @@ public @interface Cacheable {
      * @return type of data
      */
     Type type() default Type.STRING;
+
+
 }

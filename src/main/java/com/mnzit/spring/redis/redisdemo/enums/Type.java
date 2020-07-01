@@ -20,13 +20,4 @@ public enum Type {
     Type(String label) {
         this.label = label;
     }
-
-    public static Type parse(String name) {
-        for (Type type : Type.values()) {
-            if (type.name().equals(name)) {
-                return type;
-            }
-        }
-        return null;
-    }
 }

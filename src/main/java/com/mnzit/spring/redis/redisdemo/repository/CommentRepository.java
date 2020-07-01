@@ -1,6 +1,8 @@
 package com.mnzit.spring.redis.redisdemo.repository;
 
+import com.mnzit.spring.redis.redisdemo.annotation.Cacheable;
 import com.mnzit.spring.redis.redisdemo.entity.Comment;
+import com.mnzit.spring.redis.redisdemo.enums.Type;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,6 +16,7 @@ import java.util.Optional;
  */
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
+    @Cacheable(identifier = "COMMENTS", cacheName = "'post:'.concat(#postId)", ttl = 3, type = Type.HASHMAP, condition = "#postId > 1044")
     Page<Comment> findByPostId(Long postId, Pageable pageable);
 
     Optional<Comment> findByIdAndPostId(Long id, Long postId);
