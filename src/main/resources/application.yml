@@ -12,21 +12,27 @@ spring:
         format_sql: true
   redis:
     enabled: true
-    host: 192.168.1.8
+#    host: 192.168.1.8
+#    port: 6379
+#    database: 0
+#    password: zero@byte
+    host: 10.13.194.221
     port: 6379
     database: 1
-    password: zero@byte
+    password: cardserver
+    connectionTimeout: 300
+    readTimeout: 300
     pool:
       maxIdle: 50
       minIdle: 10
-      maxActive: 50
+      maxTotal: 50
       maxWaitMillis: 200
       testOnBorrow: true
       testOnReturn: true
       testWhileIdle: true
+      blockedWhenExhausted: true
       numTestsPerEvictionRun: -1
       minEvictableIdleTimeMillis: 60000
       timeBetweenEvictionRunsMillis: 30000
-      timeout: 200
 
 

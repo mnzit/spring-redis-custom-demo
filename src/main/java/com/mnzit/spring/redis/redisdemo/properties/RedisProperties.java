@@ -11,6 +11,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "spring.redis")
 public class RedisProperties {
 
+    private Boolean enabled;
+
     private String host;
 
     private int port;
@@ -23,7 +25,7 @@ public class RedisProperties {
 
     private int readTimeout;
 
-    private RedisPoolConfigProperties poolConfig;
+    private RedisPoolConfigProperties pool;
 
     @Data
     public static class RedisPoolConfigProperties {

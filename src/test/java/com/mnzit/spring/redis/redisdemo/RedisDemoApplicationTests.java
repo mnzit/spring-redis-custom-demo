@@ -13,9 +13,9 @@ class RedisDemoApplicationTests {
 
     @Test
     void postTest() {
-        ExecutorService executor = Executors.newFixedThreadPool(2000);
-
-        while(true) {
+        ExecutorService executor = Executors.newFixedThreadPool(20);
+        int is = 0;
+        while(is<=1000) {
             for (long i = 1033; i <= 1047; i++) {
 
                 executor.submit(new PostTask("thread" + i, i));

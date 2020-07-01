@@ -122,8 +122,7 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     @Override
     public Boolean clear(String[] cacheNames, Object cacheKey) {
         if (cacheNames == null || cacheNames.length == 0) {
-            throw new IllegalArgumentException(
-                    "Cache names list can not be null or empty for save operation!!");
+            throw new IllegalArgumentException("Cache names list can not be null or empty for save operation!!");
         }
         for (String cacheName : cacheNames) {
             if (StringUtils.isNullOrEmpty(cacheName)) {
@@ -133,7 +132,6 @@ public class RedisCacheServiceImpl implements RedisCacheService {
                 continue;
             }
             hashOperations.delete(cacheName, cacheKey);
-
         }
         return true;
     }

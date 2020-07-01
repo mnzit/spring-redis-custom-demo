@@ -28,14 +28,12 @@ import java.time.Duration;
 @EnableConfigurationProperties(RedisProperties.class)
 @Configuration
 public class RedisConfig {
+
     @Autowired
     private RedisProperties redisProperties;
 
-    @Autowired
-    private RedisConnectionFactory redisConnectionFactory;
-
-    public JedisPoolConfig jedisPool() {
-        RedisProperties.RedisPoolConfigProperties poolConfig = redisProperties.getPoolConfig();
+    private JedisPoolConfig jedisPoolConfig() {
+        RedisProperties.RedisPoolConfigProperties poolConfig = redisProperties.getPool();
 
         final JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
 
@@ -99,7 +97,6 @@ public class RedisConfig {
         return jedisPoolConfig;
     }
 
-
     @Bean
     public JedisConnectionFactory jedisConnectionFactory() {
 
@@ -118,14 +115,13 @@ public class RedisConfig {
                 .readTimeout(Duration.ofMillis(redisProperties.getReadTimeout()))
                 // Enable connection-pooling.
                 .usePooling()
-                .poolConfig(jedisPool());
+                .poolConfig(jedisPoolConfig());
 
-        JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory(redisStandaloneConfig, jedisConfigurationBuilder.build());
-        return jedisConnectionFactory;
+        return new JedisConnectionFactory(redisStandaloneConfig, jedisConfigurationBuilder.build());
     }
 
     @Bean
-    public StringRedisTemplate stringRedisTemplate() {
+    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
         return new StringRedisTemplate(redisConnectionFactory);
     }
 
@@ -144,7 +140,7 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate() {
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
 
         RedisTemplate<String, Object> template = new RedisTemplate<String, Object>();
         template.setConnectionFactory(redisConnectionFactory);
