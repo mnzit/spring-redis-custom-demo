@@ -1,28 +1,25 @@
 package com.mnzit.spring.redis.redisdemo.annotation;
 
 import com.mnzit.spring.redis.redisdemo.enums.Type;
-import org.springframework.stereotype.Component;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
  * @author Manjit Shakya
  * @email manjit.shakya@f1soft.com
  */
-@Component
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Cacheable {
 
     /**
      * Name of cache key name
+     * You can use expression over here
+     * Plain string should be store inside single quotes ''
      */
     String cacheName() default "";
 
@@ -63,6 +60,5 @@ public @interface Cacheable {
      * @return type of data
      */
     Type type() default Type.STRING;
-
 
 }

@@ -8,6 +8,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.validation.constraints.NotNull;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -28,81 +29,53 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     }
 
     @Override
-    public void set(String cacheKey, Object cacheValue, long ttl, TimeUnit timeUnit) {
+    public void set(@NotNull String cacheKey, @NotNull Object cacheValue, @NotNull long ttl, @NotNull TimeUnit timeUnit) {
+        checkIfEmptyKey(cacheKey);
         redisTemplate.opsForValue().set(cacheKey, cacheValue, ttl, timeUnit);
     }
 
     @Override
-    public void set(String cacheKey, Object cacheValue) {
-        if (cacheValue == null) {
-            return;
-        }
+    public void set(@NotNull String cacheKey, @NotNull Object cacheValue) {
+        checkIfEmptyKey(cacheKey);
         redisTemplate.opsForValue().set(cacheKey, cacheValue);
     }
 
     @Override
-    public <T> T get(String key, Class<T> type) {
-        return (T) redisTemplate.opsForValue().get(key);
+    public <T> T get(@NotNull String cacheKey, @NotNull Class<T> type) {
+        checkIfEmptyKey(cacheKey);
+        return (T) redisTemplate.opsForValue().get(cacheKey);
     }
 
     @Override
-    public void hSet(String cacheName, Object cacheKey, Object cacheValue, long ttl, TimeUnit timeUnit) {
-        hSet(cacheName, cacheKey, cacheValue);
+    public void hSet(@NotNull String cacheKey, @NotNull Object hashKey, @NotNull Object cacheValue, @NotNull long ttl, @NotNull TimeUnit timeUnit) {
+        checkIfEmptyKey(cacheKey);
+        hSet(cacheKey, hashKey, cacheValue);
 
-        redisTemplate.expire(cacheName, ttl, timeUnit);
+        redisTemplate.expire(cacheKey, ttl, timeUnit);
     }
 
     @Override
-    public void hSet(String cacheName, Object cacheKey, Object cacheValue) {
-        if (StringUtils.isNullOrEmpty(cacheName) || cacheKey == null) {
-            throw new IllegalArgumentException("Cache name or cache key can not be null!");
-        }
-        hashOperations.put(cacheName, cacheKey, cacheValue);
+    public void hSet(@NotNull String cacheKey, @NotNull Object hashKey, @NotNull Object cacheValue) {
+        checkIfEmptyKey(cacheKey);
+        hashOperations.put(cacheKey, hashKey, cacheValue);
     }
 
     @Override
-    public void hSet(String[] cacheNames, Object cacheKey, Object cacheValue, long ttl, TimeUnit timeUnit) {
-        hSet(cacheNames, cacheKey, cacheValue);
-
-        for (String cacheName : cacheNames) {
-            redisTemplate.expire(cacheName, ttl, timeUnit);
-        }
-
+    public <T> T hGet(@NotNull String cacheKey, @NotNull Object hashKey, @NotNull Class<T> type) {
+        checkIfEmptyKey(cacheKey);
+        return (T) hashOperations.get(cacheKey, hashKey);
     }
 
     @Override
-    public void hSet(String[] cacheNames, Object cacheKey, Object cacheValue) {
-        if (cacheNames == null || cacheNames.length == 0) {
-            throw new IllegalArgumentException("Cache names list can not be null or empty for save operation!!");
-        }
-
-        for (String cacheName : cacheNames) {
-            hashOperations.put(cacheName, cacheKey, cacheValue);
-        }
+    public void expire(@NotNull String cacheKey, @NotNull long ttl, @NotNull TimeUnit timeUnit) {
+        checkIfEmptyKey(cacheKey);
+        redisTemplate.expire(cacheKey, ttl, timeUnit);
     }
 
     @Override
-    public <T> T hGet(String cacheName, Object cacheKey, Class<T> type) {
-        if (StringUtils.isNullOrEmpty(cacheName) || cacheKey == null) {
-            throw new IllegalArgumentException("Cache name or cache key can not be null!");
-        }
-        return (T) hashOperations.get(cacheName, cacheKey);
-    }
-
-    @Override
-    public void expire(String cacheName, long ttl, TimeUnit timeUnit) {
-        if (StringUtils.isNullOrEmpty(cacheName) ) {
-            throw new IllegalArgumentException("Cache Key cannot be empty!");
-        }
-        redisTemplate.expire(cacheName, ttl, timeUnit);
-    }
-
-    @Override
-    public Boolean hasKey(String key) {
-        if (StringUtils.isNullOrEmpty(key) ) {
-            throw new IllegalArgumentException("Cache Key cannot be empty!");
-        }
-        return redisTemplate.hasKey(key);
+    public Boolean hasKey(@NotNull String cacheKey) {
+        checkIfEmptyKey(cacheKey);
+        return redisTemplate.hasKey(cacheKey);
     }
 
     @Override
@@ -112,19 +85,22 @@ public class RedisCacheServiceImpl implements RedisCacheService {
     }
 
     @Override
-    public Boolean clear(String[] cacheNames) {
-        for (String cacheName : cacheNames) {
+    public Boolean clear(@NotNull String[] cacheKeys) {
+        if (cacheKeys.length == 0) {
+            throw new IllegalArgumentException("Cache keys list can not be empty for save operation!!");
+        }
+        for (String cacheName : cacheKeys) {
             redisTemplate.delete(cacheName);
         }
         return true;
     }
 
     @Override
-    public Boolean clear(String[] cacheNames, Object cacheKey) {
-        if (cacheNames == null || cacheNames.length == 0) {
-            throw new IllegalArgumentException("Cache names list can not be null or empty for save operation!!");
+    public Boolean clear(@NotNull String[] cacheKeys, @NotNull Object cacheKey) {
+        if (cacheKeys.length == 0) {
+            throw new IllegalArgumentException("Cache keys list can not be empty for save operation!!");
         }
-        for (String cacheName : cacheNames) {
+        for (String cacheName : cacheKeys) {
             if (StringUtils.isNullOrEmpty(cacheName)) {
                 continue;
             }
@@ -134,6 +110,12 @@ public class RedisCacheServiceImpl implements RedisCacheService {
             hashOperations.delete(cacheName, cacheKey);
         }
         return true;
+    }
+
+    private void checkIfEmptyKey(String cacheKey) {
+        if (cacheKey.isEmpty()) {
+            throw new IllegalArgumentException("Cache Key cannot be empty!");
+        }
     }
 
 }

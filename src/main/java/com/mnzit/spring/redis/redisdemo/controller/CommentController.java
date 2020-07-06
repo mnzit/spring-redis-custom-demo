@@ -5,10 +5,6 @@ import com.mnzit.spring.redis.redisdemo.exception.ResourceNotFoundException;
 import com.mnzit.spring.redis.redisdemo.repository.CommentRepository;
 import com.mnzit.spring.redis.redisdemo.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -28,12 +24,15 @@ public class CommentController {
     private PostRepository postRepository;
 
     @GetMapping("/posts/{postId}/comments")
-    public List<Comment> getAllCommentsByPostId(@PathVariable(value = "postId") Long postId,
-                                                Pageable pageable) {
+    public List<Comment> getAllCommentsByPostId(@PathVariable(value = "postId") Long postId) {
 
-        Page<Comment> commentPage = commentRepository.findByPostId(postId, pageable);
+        return commentRepository.findByPostId(postId);
+    }
 
-        return commentPage.getContent();
+
+    @GetMapping("/comments")
+    public List<Comment> getAllComments() {
+        return commentRepository.findAll();
     }
 
     @PostMapping("/posts/{postId}/comments")
@@ -59,12 +58,4 @@ public class CommentController {
         }).orElseThrow(() -> new ResourceNotFoundException("CommentId " + commentId + "not found"));
     }
 
-    @DeleteMapping("/posts/{postId}/comments/{commentId}")
-    public ResponseEntity<?> deleteComment(@PathVariable(value = "postId") Long postId,
-                                           @PathVariable(value = "commentId") Long commentId) {
-        return commentRepository.findByIdAndPostId(commentId, postId).map(comment -> {
-            commentRepository.delete(comment);
-            return ResponseEntity.ok().build();
-        }).orElseThrow(() -> new ResourceNotFoundException("Comment not found with id " + commentId + " and postId " + postId));
-    }
 }

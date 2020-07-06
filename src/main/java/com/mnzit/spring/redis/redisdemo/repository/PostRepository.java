@@ -1,13 +1,13 @@
 package com.mnzit.spring.redis.redisdemo.repository;
 
 import com.mnzit.spring.redis.redisdemo.annotation.Cacheable;
+import com.mnzit.spring.redis.redisdemo.constants.KeyConstant;
 import com.mnzit.spring.redis.redisdemo.entity.Post;
 import com.mnzit.spring.redis.redisdemo.enums.Type;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -16,11 +16,13 @@ import java.util.Optional;
  */
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
-    @Cacheable(identifier = "POST", cacheName = "'post'", ttl = 3, type = Type.HASHMAP)
+    /**
+     * Use normal way if you have to store each cache separately
+     *
+     * @return
+     */
+    @Cacheable(cacheName = KeyConstant.POSTS_ALL, ttl = 5)
     @Override
-    Page<Post> findAll(Pageable pageable);
-
-    @Override
-    Optional<Post> findById(Long postId);
+    List<Post> findAll();
 
 }

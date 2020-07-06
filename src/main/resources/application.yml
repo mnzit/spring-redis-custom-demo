@@ -4,7 +4,7 @@ spring:
     username: mnzit
     password: mnzit@123
   jpa:
-    show-sql: true
+#    show-sql: true
     properties:
       hibernate:
         # Hibernate ddl auto (create, create-drop, validate, update)
@@ -12,14 +12,14 @@ spring:
         format_sql: true
   redis:
     enabled: true
-#    host: 192.168.1.8
-#    port: 6379
-#    database: 0
-#    password: zero@byte
-    host: 10.13.194.221
+    host: 192.168.1.8
     port: 6379
-    database: 1
-    password: cardserver
+    database: 0
+    password: zero@byte
+#    host: 10.13.194.221
+#    port: 6379
+#    database: 1
+#    password: cardserver
     connectionTimeout: 300
     readTimeout: 300
     pool:

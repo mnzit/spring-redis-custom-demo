@@ -18,10 +18,6 @@ public interface RedisCacheService {
 
     void hSet(String cacheName, Object cacheKey, Object cacheValue);
 
-    void hSet(String[] cacheNames, Object cacheKey, Object cacheValue, long ttl, TimeUnit timeUnit);
-
-    void hSet(String[] cacheNames, Object cacheKey, Object cacheValue);
-
     <T> T hGet(String cacheName, Object cacheKey, Class<T> type);
 
     void expire(String key, long ttl, TimeUnit timeUnit);

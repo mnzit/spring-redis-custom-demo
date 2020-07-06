@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @EnableJpaAuditing
 @SpringBootApplication
+/**
+ * Set proxyTargetClass to true for utilizing CGLIB for maintaining proxy class
+ */
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 public class RedisDemoApplication {
 

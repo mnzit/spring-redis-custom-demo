@@ -25,17 +25,15 @@ public class PostController {
     private PostRepository postRepository;
 
     @GetMapping("/posts")
-    public GenericResponse getAllPosts(Pageable pageable) {
+    public GenericResponse getAllPosts() {
         return GenericResponse.builder()
                 .resultCode("0")
                 .resultDescription("Posts Fetched Successfully")
-                .data(postRepository.findAll(pageable))
+                .data(postRepository.findAll())
                 .build();
-//        return postRepository.findAll(pageable).getContent();
     }
 
-    //    @Cacheable(identifier = "POSTS", cacheName = KeyConstant.POST + ".concat(':'+#postId)", ttl = 30, type = Type.HASHMAP, condition = "#postId >= 1033", timeUnit = TimeUnit.SECONDS)
-    @Cacheable(cacheName = KeyConstant.POST + ".concat(':'+#postId)", ttl = 30, condition = "#postId >= 1033", timeUnit = TimeUnit.SECONDS)
+
     @GetMapping("/posts/{postId}")
     public GenericResponse getPost(@PathVariable Long postId) {
         return GenericResponse.builder()
