@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Manjit Shakya
@@ -25,7 +26,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
      * @param postId
      * @return
      */
-    @Cacheable(identifier = KeyConstant.COMMENTS, cacheName = KeyConstant.POST + ".concat(#postId)", ttl = 5, type = Type.HASHMAP)
+    @Cacheable(identifier = KeyConstant.COMMENTS, cacheName = KeyConstant.POST + ".concat(#postId)", ttl = 5, type = Type.HASHMAP, timeUnit = TimeUnit.SECONDS)
     List<Comment> findByPostId(Long postId);
 
     /**

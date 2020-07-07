@@ -12,13 +12,13 @@ public class CacheExpressionRootObject {
 
     private final Method method;
 
+    private final String methodName;
+
     private final Object[] args;
 
     private final Object target;
 
     private final Class<?> targetClass;
-
-    private final String key;
 
     public CacheExpressionRootObject(Method method, Object[] args, Object target, Class<?> targetClass) {
 
@@ -28,7 +28,7 @@ public class CacheExpressionRootObject {
         this.target = target;
         this.targetClass = targetClass;
         this.args = args;
-        this.key = "";
+        this.methodName = method.getName();
     }
 
     public Method getMethod() {

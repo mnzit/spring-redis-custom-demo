@@ -115,23 +115,21 @@ public class RedisCacheProcessorAspect {
             // execute method to get the return object
             object = joinPoint.proceed();
 
+            // cache the object if database return object
             if (object != null) {
                 log.debug("[cachestore] Caching [Hashname: {}, key : {}, value: {}]", cacheable.identifier(), key, object);
-            }
 
-            log.debug("%%%%%%% Fetched from database : {}", object);
+                log.debug("%%%%%%% Fetched from database : {}", object);
 
-            try {
-                redisCacheService.hSet(cacheable.identifier(), key, object);
-
-                if (!cacheable.eternal()) {
-
-                    redisCacheService.expire(cacheable.identifier(), cacheable.ttl(), cacheable.timeUnit());
-
+                try {
+                    redisCacheService.hSet(cacheable.identifier(), key, object);
+                    if (!cacheable.eternal()) {
+                        redisCacheService.expire(cacheable.identifier(), cacheable.ttl(), cacheable.timeUnit());
+                    }
+                } catch (Exception e) {
+                    log.error("Exception while setting {} {}", key, methodName);
                 }
 
-            } catch (Exception e) {
-                log.error("Exception while setting {} {}", key, methodName);
             }
 
         } else {
@@ -169,8 +167,10 @@ public class RedisCacheProcessorAspect {
             object = joinPoint.proceed();
             log.debug("%%%%%%% Fetched from database : {}", object);
 
+            // cache the object if database return object
             if (object != null) {
                 log.debug("[cachestore] Caching [String : {}, key : {}, value: {}]", key, object);
+
                 try {
                     if (cacheable.eternal()) {
                         redisCacheService.set(key, object);
@@ -180,6 +180,7 @@ public class RedisCacheProcessorAspect {
                 } catch (Exception e) {
                     log.error("Exception while setting {} {}", key, methodName);
                 }
+
             }
         } else {
             log.debug("%%%%%%% Data obtained from redis cache {} {}", key, methodName);

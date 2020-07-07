@@ -26,7 +26,7 @@ public @interface Cacheable {
     /**
      * Name of hash in case Hash is used
      */
-    String identifier() default "HASH";
+    String identifier() default "";
 
     /**
      * Expression script used for conditioning the method caching, the cache is not
