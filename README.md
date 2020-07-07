@@ -65,4 +65,23 @@ public @interface Cacheable {
     cacheName = "#root.method.getName()" // Use method object
     cacheName = "#root.methodName"
 ```
+#### Serializer
+```java
+    
+    public RedisSerializer JdkSerializationRedisSerializer() {
+        JdkSerializationRedisSerializer jdkSerializationRedisSerializer = new JdkSerializationRedisSerializer();
+        return jdkSerializationRedisSerializer;
+    }
+
+    @Bean
+    public RedisSerializer fastJsonRedisSerializer() {
+        FastJsonRedisSerializer<Object> fastJsonRedisSerializer = new FastJsonRedisSerializer(Object.class);
+        return fastJsonRedisSerializer;
+    }
+
+```
+
+- There are Two serializer use the fastJson to store as JSON and use jdk to store as bytes
+- set One as ```@Bean``` to use the serializer
+
 

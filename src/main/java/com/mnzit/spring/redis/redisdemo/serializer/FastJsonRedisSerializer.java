@@ -1,4 +1,4 @@
-package com.mnzit.spring.redis.redisdemo;
+package com.mnzit.spring.redis.redisdemo.serializer;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.parser.ParserConfig;

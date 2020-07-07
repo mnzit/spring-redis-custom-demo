@@ -1,10 +1,6 @@
 package com.mnzit.spring.redis.redisdemo.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.mnzit.spring.redis.redisdemo.FastJsonRedisSerializer;
+import com.mnzit.spring.redis.redisdemo.serializer.FastJsonRedisSerializer;
 import com.mnzit.spring.redis.redisdemo.properties.RedisProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
