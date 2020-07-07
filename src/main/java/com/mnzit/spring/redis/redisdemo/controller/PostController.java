@@ -4,6 +4,7 @@ import com.mnzit.spring.redis.redisdemo.annotation.Cacheable;
 import com.mnzit.spring.redis.redisdemo.constants.KeyConstant;
 import com.mnzit.spring.redis.redisdemo.dto.GenericResponse;
 import com.mnzit.spring.redis.redisdemo.entity.Post;
+import com.mnzit.spring.redis.redisdemo.enums.Type;
 import com.mnzit.spring.redis.redisdemo.exception.ResourceNotFoundException;
 import com.mnzit.spring.redis.redisdemo.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,13 @@ public class PostController {
                 .build();
     }
 
-
+    /**
+     * User hashmap if you have to store multiple cache as group
+     *
+     * @param postId
+     * @return
+     */
+    @Cacheable(identifier = KeyConstant.POSTS, cacheName = KeyConstant.POST + ".concat(#postId)", ttl = 5, type = Type.HASHMAP)
     @GetMapping("/posts/{postId}")
     public GenericResponse getPost(@PathVariable Long postId) {
         return GenericResponse.builder()
@@ -42,6 +49,7 @@ public class PostController {
                 .data(postRepository.findById(postId).get())
                 .build();
     }
+
 
     @PostMapping("/posts")
     public Post createPost(@Valid @RequestBody Post post) {
