@@ -1,7 +1,9 @@
 package com.mnzit.spring.redis.redisdemo.aspect;
 
 import com.mnzit.spring.redis.redisdemo.annotation.Cacheable;
+import com.mnzit.spring.redis.redisdemo.aspect.cacheType.RedisCache;
 import com.mnzit.spring.redis.redisdemo.enums.Type;
+import com.mnzit.spring.redis.redisdemo.factory.RedisCacheTypeFactory;
 import com.mnzit.spring.redis.redisdemo.parser.RedisCacheExpressionParser;
 import com.mnzit.spring.redis.redisdemo.properties.RedisProperties;
 import com.mnzit.spring.redis.redisdemo.service.RedisCacheService;
@@ -30,7 +32,7 @@ public class RedisCacheProcessorAspect {
     @Autowired
     private RedisProperties redisProperties;
     @Autowired
-    private RedisCacheService redisCacheService;
+    private RedisCacheTypeFactory redisCacheTypeFactory;
 
     @Pointcut("@annotation(cacheable)")
     public void cacheablePointCut(Cacheable cacheable) {
@@ -65,17 +67,11 @@ public class RedisCacheProcessorAspect {
             if (condition) {
                 String key = RedisCacheExpressionParser.getCacheKeyFromAnnotationKeyValue(standardEvaluationContext, cacheable.cacheName());
 
-                if (type.name().equals(Type.STRING.name())) {
+                RedisCache redisCache = redisCacheTypeFactory.getCacheType(type);
 
-                    object = string(cacheable, joinPoint, key, method, methodName);
+                redisCache.initialize(joinPoint, cacheable, key, method, methodName);
 
-                } else if (type.name().equals(Type.HASHMAP.name())) {
-
-                    object = hashes(cacheable, joinPoint, key, method, methodName);
-
-                } else {
-                    throw new IllegalArgumentException("Type not supported");
-                }
+                object = redisCache.process();
 
             } else {
                 // execute method to get the return object
@@ -96,95 +92,5 @@ public class RedisCacheProcessorAspect {
     private Method getCurrentMethod(JoinPoint joinPoint) {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         return signature.getMethod();
-    }
-
-    private Object hashes(Cacheable cacheable, ProceedingJoinPoint joinPoint, String key, Method method, String methodName) throws Throwable {
-        Object object = null;
-
-        try {
-            object = redisCacheService.hGet(cacheable.identifier(), key, method.getReturnType());
-        } catch (Exception e) {
-            log.error("[cachebreak] Error while retreiving key {}:{} {} error : {}", cacheable.identifier(), key, methodName, e.getMessage());
-
-            object = joinPoint.proceed();
-            log.debug("%%%%%%% Fetched from database : {}", object);
-            return object;
-        }
-
-        if (object == null) {
-            // execute method to get the return object
-            object = joinPoint.proceed();
-
-            // cache the object if database return object
-            if (object != null) {
-                log.debug("[cachestore] Caching [Hashname: {}, key : {}, value: {}]", cacheable.identifier(), key, object);
-
-                log.debug("%%%%%%% Fetched from database : {}", object);
-
-                try {
-                    redisCacheService.hSet(cacheable.identifier(), key, object);
-                    if (!cacheable.eternal()) {
-                        redisCacheService.expire(cacheable.identifier(), cacheable.ttl(), cacheable.timeUnit());
-                    }
-                } catch (Exception e) {
-                    log.error("Exception while setting {} {}", key, methodName);
-                }
-
-            }
-
-        } else {
-            log.debug("%%%%%%% Data obtained from redis cache {} {} {}", cacheable.identifier(), key, methodName);
-        }
-
-        return object;
-    }
-
-    /**
-     * For storing Objects in String KeyPair Format
-     *
-     * @param cacheable
-     * @param joinPoint
-     * @param key
-     * @param method
-     * @return
-     * @throws Throwable
-     */
-    private Object string(Cacheable cacheable, ProceedingJoinPoint joinPoint, String key, Method method, String methodName) throws Throwable {
-        Object object = null;
-
-        try {
-            object = redisCacheService.get(key, method.getReturnType());
-        } catch (Exception e) {
-            log.error("[cachebreak] Error while retreiving key : {} {} error : {}", key, methodName, e.getMessage());
-
-            object = joinPoint.proceed();
-            log.debug("%%%%%%% Fetched from database : {}", object);
-            return object;
-        }
-
-        if (object == null) {
-            // execute method to get the return object
-            object = joinPoint.proceed();
-            log.debug("%%%%%%% Fetched from database : {}", object);
-
-            // cache the object if database return object
-            if (object != null) {
-                log.debug("[cachestore] Caching [String : {}, key : {}, value: {}]", key, object);
-
-                try {
-                    if (cacheable.eternal()) {
-                        redisCacheService.set(key, object);
-                    } else {
-                        redisCacheService.set(key, object, cacheable.ttl(), cacheable.timeUnit());
-                    }
-                } catch (Exception e) {
-                    log.error("Exception while setting {} {}", key, methodName);
-                }
-
-            }
-        } else {
-            log.debug("%%%%%%% Data obtained from redis cache {} {}", key, methodName);
-        }
-        return object;
     }
 }

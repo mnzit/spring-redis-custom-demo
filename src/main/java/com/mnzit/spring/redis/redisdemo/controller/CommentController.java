@@ -29,7 +29,6 @@ public class CommentController {
         return commentRepository.findByPostId(postId);
     }
 
-
     @GetMapping("/comments")
     public List<Comment> getAllComments() {
         return commentRepository.findAll();
