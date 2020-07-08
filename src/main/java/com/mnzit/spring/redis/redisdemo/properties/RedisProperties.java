@@ -3,6 +3,8 @@ package com.mnzit.spring.redis.redisdemo.properties;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.Map;
+
 /**
  * @author Manjit Shakya
  * @email manjit.shakya@f1soft.com
@@ -26,6 +28,10 @@ public class RedisProperties {
     private int readTimeout;
 
     private RedisPoolConfigProperties pool;
+
+    private Map<String,String> cachesTTL;
+
+    private String defaultTTL;
 
     @Data
     public static class RedisPoolConfigProperties {

@@ -22,6 +22,9 @@ spring:
 #    password: cardserver
     connectionTimeout: 300
     readTimeout: 300
+    cachesTTL:
+      posts: 1
+    defaultTTL: -1
     pool:
       maxIdle: 50
       minIdle: 10
@@ -34,5 +37,7 @@ spring:
       numTestsPerEvictionRun: -1
       minEvictableIdleTimeMillis: 60000
       timeBetweenEvictionRunsMillis: 30000
+
+
 
 

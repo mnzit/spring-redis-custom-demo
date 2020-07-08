@@ -31,29 +31,10 @@ public class PostController {
                 .data(postRepository.findAll())
                 .build());
     }
-    @Cacheable(value = "POSTS", key = "#postId",cacheManager = ExpiryTimeConstant.Time.FIVE_MIN)
+
+    @Cacheable(value = "post", key = "#postId")
     @GetMapping("/posts/{postId}")
     public GenericResponse getPost(@PathVariable Long postId) {
-        return GenericResponse.builder()
-                .resultCode("0")
-                .resultDescription("Post Fetched Successfully")
-                .data(postRepository.findById(postId).get())
-                .build();
-    }
-
-    @Cacheable(value = "POSTS", key = "#postId",cacheManager = ExpiryTimeConstant.Time.FIVE_MIN)
-    @GetMapping("/1min/posts/{postId}")
-    public GenericResponse getPost1(@PathVariable Long postId) {
-        return GenericResponse.builder()
-                .resultCode("0")
-                .resultDescription("Post Fetched Successfully")
-                .data(postRepository.findById(postId).get())
-                .build();
-    }
-
-    @Cacheable(key = "#postId", value = "5min")
-    @GetMapping("/5min/posts/{postId}")
-    public GenericResponse getPos5(@PathVariable Long postId) {
         return GenericResponse.builder()
                 .resultCode("0")
                 .resultDescription("Post Fetched Successfully")

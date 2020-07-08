@@ -15,9 +15,13 @@ import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import redis.clients.jedis.JedisPoolConfig;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Manjit Shakya
@@ -119,30 +123,23 @@ public class RedisConfig {
         return new JedisConnectionFactory(redisStandaloneConfig, jedisConfigurationBuilder.build());
     }
 
+    private RedisCacheConfiguration createCacheConfiguration(long timeoutInSeconds) {
+        return RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofSeconds(timeoutInSeconds));
+    }
+
     @Bean
-    public RedisCacheConfiguration cacheConfiguration() {
-        return RedisCacheConfiguration.defaultCacheConfig();
-    }
-
-    @Primary
-    @Bean(name = ExpiryTimeConstant.Time.ONE_MIN)
-    public CacheManager cacheManager1(RedisConnectionFactory redisConnectionFactory, RedisCacheConfiguration redisCacheConfiguration) {
-        return buildCacheManager(redisConnectionFactory, redisCacheConfiguration, ExpiryTimeConstant.EXPIRY.get(ExpiryTimeConstant.Time.ONE_MIN));
-    }
-
-
-    @Bean(name = ExpiryTimeConstant.Time.FIVE_MIN)
-    public CacheManager cacheManager2(RedisConnectionFactory redisConnectionFactory, RedisCacheConfiguration redisCacheConfiguration) {
-        return buildCacheManager(redisConnectionFactory, redisCacheConfiguration, ExpiryTimeConstant.EXPIRY.get(ExpiryTimeConstant.Time.FIVE_MIN));
-    }
-
-    protected RedisCacheManager buildCacheManager(RedisConnectionFactory redisConnectionFactory, RedisCacheConfiguration redisCacheConfiguration, Duration duration) {
-
-        //RedisCacheManager generator creation
-        RedisCacheManager.RedisCacheManagerBuilder builder = RedisCacheManager.builder(redisConnectionFactory).cacheDefaults(redisCacheConfiguration);
-
-        builder.cacheDefaults(RedisCacheConfiguration.defaultCacheConfig().entryTtl(duration));
-        return builder.build();
+    public CacheManager cacheManager(JedisConnectionFactory redisConnectionFactory) {
+        Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
+        if (Objects.nonNull(redisProperties.getCachesTTL())) {
+            for (Map.Entry<String, String> cacheNameAndTimeout : redisProperties.getCachesTTL().entrySet()) {
+                cacheConfigurations.put(cacheNameAndTimeout.getKey(), createCacheConfiguration(Long.parseLong(cacheNameAndTimeout.getValue())));
+            }
+        }
+        return RedisCacheManager
+                .builder(redisConnectionFactory)
+                .cacheDefaults(createCacheConfiguration(Long.parseLong(redisProperties.getDefaultTTL())))
+                .withInitialCacheConfigurations(cacheConfigurations).build();
     }
 
 
