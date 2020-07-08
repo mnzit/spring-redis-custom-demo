@@ -1,20 +1,16 @@
 package com.mnzit.spring.redis.redisdemo.controller;
 
-import com.mnzit.spring.redis.redisdemo.annotation.Cacheable;
-import com.mnzit.spring.redis.redisdemo.constants.KeyConstant;
+import com.mnzit.spring.redis.redisdemo.config.ExpiryTimeConstant;
 import com.mnzit.spring.redis.redisdemo.dto.GenericResponse;
 import com.mnzit.spring.redis.redisdemo.entity.Post;
-import com.mnzit.spring.redis.redisdemo.enums.Type;
 import com.mnzit.spring.redis.redisdemo.exception.ResourceNotFoundException;
 import com.mnzit.spring.redis.redisdemo.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.xml.ws.Response;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Manjit Shakya
@@ -26,6 +22,7 @@ public class PostController {
     @Autowired
     private PostRepository postRepository;
 
+
     @GetMapping("/posts")
     public ResponseEntity<?> getAllPosts() {
         return ResponseEntity.ok(GenericResponse.builder()
@@ -34,14 +31,7 @@ public class PostController {
                 .data(postRepository.findAll())
                 .build());
     }
-
-    /**
-     * User hashmap if you have to store multiple cache as group
-     *
-     * @param postId
-     * @return
-     */
-    @Cacheable(identifier = KeyConstant.POSTS, cacheName = KeyConstant.POST + ".concat(#postId)", ttl = 5, type = Type.HASHMAP)
+    @Cacheable(value = "POSTS", key = "#postId",cacheManager = ExpiryTimeConstant.Time.FIVE_MIN)
     @GetMapping("/posts/{postId}")
     public GenericResponse getPost(@PathVariable Long postId) {
         return GenericResponse.builder()
@@ -51,6 +41,25 @@ public class PostController {
                 .build();
     }
 
+    @Cacheable(value = "POSTS", key = "#postId",cacheManager = ExpiryTimeConstant.Time.FIVE_MIN)
+    @GetMapping("/1min/posts/{postId}")
+    public GenericResponse getPost1(@PathVariable Long postId) {
+        return GenericResponse.builder()
+                .resultCode("0")
+                .resultDescription("Post Fetched Successfully")
+                .data(postRepository.findById(postId).get())
+                .build();
+    }
+
+    @Cacheable(key = "#postId", value = "5min")
+    @GetMapping("/5min/posts/{postId}")
+    public GenericResponse getPos5(@PathVariable Long postId) {
+        return GenericResponse.builder()
+                .resultCode("0")
+                .resultDescription("Post Fetched Successfully")
+                .data(postRepository.findById(postId).get())
+                .build();
+    }
 
     @PostMapping("/posts")
     public Post createPost(@Valid @RequestBody Post post) {

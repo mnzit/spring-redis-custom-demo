@@ -1,21 +1,20 @@
 package com.mnzit.spring.redis.redisdemo.config;
 
 import com.mnzit.spring.redis.redisdemo.properties.RedisProperties;
-import com.mnzit.spring.redis.redisdemo.serializer.FastJsonRedisSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.*;
 import redis.clients.jedis.JedisPoolConfig;
 
 import java.time.Duration;
@@ -121,73 +120,30 @@ public class RedisConfig {
     }
 
     @Bean
-    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        return new StringRedisTemplate(redisConnectionFactory);
+    public RedisCacheConfiguration cacheConfiguration() {
+        return RedisCacheConfiguration.defaultCacheConfig();
     }
 
-    /**
-     * Using JdkSerializationRedisSerializer
-     *
-     * @return
-     */
-    @Bean
-    public RedisSerializer JdkSerializationRedisSerializer() {
-        JdkSerializationRedisSerializer jdkSerializationRedisSerializer = new JdkSerializationRedisSerializer();
-        return jdkSerializationRedisSerializer;
-    }
-    /**
-     * Using fastJsonRedisSerializer
-     *
-     * @return
-     */
-//    @Bean
-    public RedisSerializer fastJsonRedisSerializer() {
-        FastJsonRedisSerializer<Object> fastJsonRedisSerializer = new FastJsonRedisSerializer(Object.class);
-        return fastJsonRedisSerializer;
+    @Primary
+    @Bean(name = ExpiryTimeConstant.Time.ONE_MIN)
+    public CacheManager cacheManager1(RedisConnectionFactory redisConnectionFactory, RedisCacheConfiguration redisCacheConfiguration) {
+        return buildCacheManager(redisConnectionFactory, redisCacheConfiguration, ExpiryTimeConstant.EXPIRY.get(ExpiryTimeConstant.Time.ONE_MIN));
     }
 
-    /**
-     * Using jackson2JsonRedisSerializer
-     *
-     * @return
-     */
-    @Bean
-    public RedisSerializer jackson2JsonRedisSerializer(){
-        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
-        return jackson2JsonRedisSerializer;
+
+    @Bean(name = ExpiryTimeConstant.Time.FIVE_MIN)
+    public CacheManager cacheManager2(RedisConnectionFactory redisConnectionFactory, RedisCacheConfiguration redisCacheConfiguration) {
+        return buildCacheManager(redisConnectionFactory, redisCacheConfiguration, ExpiryTimeConstant.EXPIRY.get(ExpiryTimeConstant.Time.FIVE_MIN));
     }
 
-    /**
-     * Using genericJackson2JsonRedisSerializer
-     *
-     * @return
-     */
-    @Bean
-    public RedisSerializer genericJackson2JsonRedisSerializer(){
-        GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer = new GenericJackson2JsonRedisSerializer();
-        return genericJackson2JsonRedisSerializer;
+    protected RedisCacheManager buildCacheManager(RedisConnectionFactory redisConnectionFactory, RedisCacheConfiguration redisCacheConfiguration, Duration duration) {
+
+        //RedisCacheManager generator creation
+        RedisCacheManager.RedisCacheManagerBuilder builder = RedisCacheManager.builder(redisConnectionFactory).cacheDefaults(redisCacheConfiguration);
+
+        builder.cacheDefaults(RedisCacheConfiguration.defaultCacheConfig().entryTtl(duration));
+        return builder.build();
     }
 
-    private RedisSerializer<String> keySerializer() {
-        return new StringRedisSerializer();
-    }
 
-    @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory, RedisSerializer serializer) {
-
-        RedisTemplate<String, Object> template = new RedisTemplate<String, Object>();
-        template.setConnectionFactory(redisConnectionFactory);
-        template.setExposeConnection(true);
-
-        template.setKeySerializer(keySerializer());
-        template.setHashKeySerializer(keySerializer());
-
-        template.setValueSerializer(serializer);
-        template.setHashValueSerializer(serializer);
-
-        template.setStringSerializer(keySerializer());
-        template.afterPropertiesSet();
-
-        return template;
-    }
 }
