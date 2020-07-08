@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.xml.ws.Response;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -26,12 +27,12 @@ public class PostController {
     private PostRepository postRepository;
 
     @GetMapping("/posts")
-    public GenericResponse getAllPosts() {
-        return GenericResponse.builder()
+    public ResponseEntity<?> getAllPosts() {
+        return ResponseEntity.ok(GenericResponse.builder()
                 .resultCode("0")
                 .resultDescription("Posts Fetched Successfully")
                 .data(postRepository.findAll())
-                .build();
+                .build());
     }
 
     /**

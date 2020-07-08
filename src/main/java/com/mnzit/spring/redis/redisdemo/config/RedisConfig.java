@@ -1,8 +1,9 @@
 package com.mnzit.spring.redis.redisdemo.config;
 
-import com.mnzit.spring.redis.redisdemo.serializer.FastJsonRedisSerializer;
 import com.mnzit.spring.redis.redisdemo.properties.RedisProperties;
+import com.mnzit.spring.redis.redisdemo.serializer.FastJsonRedisSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -14,9 +15,7 @@ import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.serializer.*;
 import redis.clients.jedis.JedisPoolConfig;
 
 import java.time.Duration;
@@ -131,7 +130,7 @@ public class RedisConfig {
      *
      * @return
      */
-//    @Bean
+    @Bean
     public RedisSerializer JdkSerializationRedisSerializer() {
         JdkSerializationRedisSerializer jdkSerializationRedisSerializer = new JdkSerializationRedisSerializer();
         return jdkSerializationRedisSerializer;
@@ -141,10 +140,32 @@ public class RedisConfig {
      *
      * @return
      */
-    @Bean
+//    @Bean
     public RedisSerializer fastJsonRedisSerializer() {
         FastJsonRedisSerializer<Object> fastJsonRedisSerializer = new FastJsonRedisSerializer(Object.class);
         return fastJsonRedisSerializer;
+    }
+
+    /**
+     * Using jackson2JsonRedisSerializer
+     *
+     * @return
+     */
+    @Bean
+    public RedisSerializer jackson2JsonRedisSerializer(){
+        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
+        return jackson2JsonRedisSerializer;
+    }
+
+    /**
+     * Using genericJackson2JsonRedisSerializer
+     *
+     * @return
+     */
+    @Bean
+    public RedisSerializer genericJackson2JsonRedisSerializer(){
+        GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer = new GenericJackson2JsonRedisSerializer();
+        return genericJackson2JsonRedisSerializer;
     }
 
     private RedisSerializer<String> keySerializer() {
