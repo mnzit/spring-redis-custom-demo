@@ -22,8 +22,8 @@ spring:
 #    password: cardserver
     connectionTimeout: 300
     readTimeout: 300
-    cachesTTL:
-      posts: 1
+    cachesTTL: #in seconds
+      posts: 1000
     defaultTTL: -1
     pool:
       maxIdle: 50

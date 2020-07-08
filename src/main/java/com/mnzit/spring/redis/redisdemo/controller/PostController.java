@@ -22,7 +22,6 @@ public class PostController {
     @Autowired
     private PostRepository postRepository;
 
-
     @GetMapping("/posts")
     public ResponseEntity<?> getAllPosts() {
         return ResponseEntity.ok(GenericResponse.builder()
@@ -32,7 +31,7 @@ public class PostController {
                 .build());
     }
 
-    @Cacheable(value = "post", key = "#postId")
+    @Cacheable(value = "posts", key = "#postId")
     @GetMapping("/posts/{postId}")
     public GenericResponse getPost(@PathVariable Long postId) {
         return GenericResponse.builder()
