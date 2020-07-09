@@ -10,7 +10,9 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.swing.*;
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @author Manjit Shakya
@@ -22,14 +24,10 @@ public class PostController {
     @Autowired
     private PostRepository postRepository;
 
-
+    @Cacheable(value = "POSTSALL", key = "#postId",cacheManager = ExpiryTimeConstant.Time.FIVE_MIN)
     @GetMapping("/posts")
-    public ResponseEntity<?> getAllPosts() {
-        return ResponseEntity.ok(GenericResponse.builder()
-                .resultCode("0")
-                .resultDescription("Posts Fetched Successfully")
-                .data(postRepository.findAll())
-                .build());
+    public List<Post> getAllPosts() {
+        return postRepository.findAll();
     }
     @Cacheable(value = "POSTS", key = "#postId",cacheManager = ExpiryTimeConstant.Time.FIVE_MIN)
     @GetMapping("/posts/{postId}")
