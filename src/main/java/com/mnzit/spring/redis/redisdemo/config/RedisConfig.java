@@ -2,7 +2,9 @@ package com.mnzit.spring.redis.redisdemo.config;
 
 import com.mnzit.spring.redis.redisdemo.exception.CustomCacheErrorHandler;
 import com.mnzit.spring.redis.redisdemo.properties.RedisProperties;
+import com.mnzit.spring.redis.redisdemo.template.CustomRedisTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.CacheManager;
@@ -20,6 +22,11 @@ import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import redis.clients.jedis.JedisPoolConfig;
 
 import java.time.Duration;
@@ -126,29 +133,78 @@ public class RedisConfig extends CachingConfigurerSupport {
         return new JedisConnectionFactory(redisStandaloneConfig, jedisConfigurationBuilder.build());
     }
 
-    @Bean
-    public RedisCacheConfiguration cacheConfiguration() {
-        return RedisCacheConfiguration.defaultCacheConfig();
+    @Bean("stringSerializer")
+    public RedisSerializer stringSerializer() {
+        return new StringRedisSerializer();
+    }
+
+    @Bean("jdkSerializer")
+    public RedisSerializer jdkSerializer() {
+        return new JdkSerializationRedisSerializer(getClass().getClassLoader());
     }
 
     @Primary
+    @Bean(name = "redisTemplate")
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory,
+                                                       @Qualifier("stringSerializer") RedisSerializer stringSerializer,
+                                                       @Qualifier("jdkSerializer") RedisSerializer jdkSerializer) {
+        RedisTemplate<String, Object> redisTemplate = new CustomRedisTemplate<>();
+
+        redisTemplate.setStringSerializer(stringSerializer);
+        redisTemplate.setHashKeySerializer(stringSerializer);
+        redisTemplate.setKeySerializer(stringSerializer);
+
+        redisTemplate.setValueSerializer(jdkSerializer);
+        redisTemplate.setHashValueSerializer(jdkSerializer);
+
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+
+        return redisTemplate;
+    }
+
+    @Bean(name = "redisTemplate2")
+    public RedisTemplate<String, Object> redisTemplate2(RedisConnectionFactory redisConnectionFactory,
+                                                        @Qualifier("stringSerializer") RedisSerializer stringSerializer,
+                                                        @Qualifier("jdkSerializer") RedisSerializer jdkSerializer) {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
+
+        redisTemplate.setStringSerializer(stringSerializer);
+        redisTemplate.setHashKeySerializer(stringSerializer);
+        redisTemplate.setKeySerializer(stringSerializer);
+
+        redisTemplate.setValueSerializer(jdkSerializer);
+        redisTemplate.setHashValueSerializer(jdkSerializer);
+
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+
+        return redisTemplate;
+    }
+
+
+    @Primary
     @Bean(name = ExpiryTimeConstant.Time.ONE_MIN)
-    public CacheManager cacheManager1(RedisConnectionFactory redisConnectionFactory, RedisCacheConfiguration redisCacheConfiguration) {
-        return buildCacheManager(redisConnectionFactory, redisCacheConfiguration, ExpiryTimeConstant.EXPIRY.get(ExpiryTimeConstant.Time.ONE_MIN));
+    public CacheManager cacheManager1(RedisConnectionFactory redisConnectionFactory) {
+        return buildCacheManager(redisConnectionFactory, ExpiryTimeConstant.EXPIRY.get(ExpiryTimeConstant.Time.ONE_MIN));
     }
 
 
     @Bean(name = ExpiryTimeConstant.Time.FIVE_MIN)
-    public CacheManager cacheManager2(RedisConnectionFactory redisConnectionFactory, RedisCacheConfiguration redisCacheConfiguration) {
-        return buildCacheManager(redisConnectionFactory, redisCacheConfiguration, ExpiryTimeConstant.EXPIRY.get(ExpiryTimeConstant.Time.FIVE_MIN));
+    public CacheManager cacheManager2(RedisConnectionFactory redisConnectionFactory) {
+        return buildCacheManager(redisConnectionFactory, ExpiryTimeConstant.EXPIRY.get(ExpiryTimeConstant.Time.FIVE_MIN));
     }
 
-    protected RedisCacheManager buildCacheManager(RedisConnectionFactory redisConnectionFactory, RedisCacheConfiguration redisCacheConfiguration, Duration duration) {
+    protected RedisCacheManager buildCacheManager(RedisConnectionFactory redisConnectionFactory,
+                                                  Duration duration
+                                                  ) {
 
         //RedisCacheManager generator creation
-        RedisCacheManager.RedisCacheManagerBuilder builder = RedisCacheManager.builder(redisConnectionFactory).cacheDefaults(redisCacheConfiguration);
-
-        builder.cacheDefaults(RedisCacheConfiguration.defaultCacheConfig().entryTtl(duration));
+        RedisCacheManager.RedisCacheManagerBuilder builder = RedisCacheManager
+                .builder(redisConnectionFactory)
+                .cacheDefaults(
+                        RedisCacheConfiguration.defaultCacheConfig()
+                                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(stringSerializer()))
+                                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jdkSerializer()))
+                                .entryTtl(duration));
         return builder.build();
     }
 
