@@ -5,31 +5,40 @@ import com.mnzit.spring.redis.redisdemo.dto.GenericResponse;
 import com.mnzit.spring.redis.redisdemo.entity.Post;
 import com.mnzit.spring.redis.redisdemo.exception.ResourceNotFoundException;
 import com.mnzit.spring.redis.redisdemo.repository.PostRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.swing.*;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Manjit Shakya
  * @email manjit.shakya@f1soft.com
  */
+@Slf4j
 @RestController
 public class PostController {
 
     @Autowired
     private PostRepository postRepository;
 
-    @Cacheable(value = "POSTSALL", key = "#postId",cacheManager = ExpiryTimeConstant.Time.FIVE_MIN)
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    @Cacheable(value = "POSTSALL", cacheManager = ExpiryTimeConstant.Time.FIVE_MIN)
     @GetMapping("/posts")
     public List<Post> getAllPosts() {
         return postRepository.findAll();
     }
-    @Cacheable(value = "POSTS", key = "#postId",cacheManager = ExpiryTimeConstant.Time.FIVE_MIN)
+
+    @Cacheable(value = "DATA::POSTS", key = "#postId", cacheManager = ExpiryTimeConstant.Time.FIVE_MIN)
     @GetMapping("/posts/{postId}")
     public GenericResponse getPost(@PathVariable Long postId) {
         return GenericResponse.builder()
@@ -39,7 +48,7 @@ public class PostController {
                 .build();
     }
 
-    @Cacheable(value = "POSTS", key = "#postId",cacheManager = ExpiryTimeConstant.Time.FIVE_MIN)
+    @Cacheable(value = "POSTS", key = "#postId", cacheManager = ExpiryTimeConstant.Time.FIVE_MIN)
     @GetMapping("/1min/posts/{postId}")
     public GenericResponse getPost1(@PathVariable Long postId) {
         return GenericResponse.builder()
@@ -48,16 +57,16 @@ public class PostController {
                 .data(postRepository.findById(postId).get())
                 .build();
     }
-
-    @Cacheable(key = "#postId", value = "5min")
-    @GetMapping("/5min/posts/{postId}")
-    public GenericResponse getPos5(@PathVariable Long postId) {
-        return GenericResponse.builder()
-                .resultCode("0")
-                .resultDescription("Post Fetched Successfully")
-                .data(postRepository.findById(postId).get())
-                .build();
-    }
+//
+//    @Cacheable(key = "#postId", value = "5min")
+//    @GetMapping("/5min/posts/{postId}")postm
+//    public GenericResponse getPos5(@PathVariable Long postId) {
+//        return GenericResponse.builder()
+//                .resultCode("0")
+//                .resultDescription("Post Fetched Successfully")
+//                .data(postRepository.findById(postId).get())
+//                .build();
+//    }
 
     @PostMapping("/posts")
     public Post createPost(@Valid @RequestBody Post post) {
@@ -75,11 +84,11 @@ public class PostController {
     }
 
 
-    @DeleteMapping("/posts/{postId}")
-    public ResponseEntity<?> deletePost(@PathVariable Long postId) {
-        return postRepository.findById(postId).map(post -> {
-            postRepository.delete(post);
-            return ResponseEntity.ok().build();
-        }).orElseThrow(() -> new ResourceNotFoundException("PostId " + postId + " not found"));
+    @DeleteMapping("/posts/delete/{pattern}")
+    public GenericResponse deletePost(@PathVariable String pattern) {
+        Set<String> sets = redisTemplate.keys(pattern);
+        log.debug("Data by pattern: {}", sets);
+        redisTemplate.delete(sets);
+        return GenericResponse.builder().resultCode("1").data(sets).resultDescription("Deleted the following keys").build();
     }
 }
