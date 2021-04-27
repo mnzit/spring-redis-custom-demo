@@ -24,11 +24,12 @@ public class PostController {
     @Autowired
     private PostRepository postRepository;
 
-    @Cacheable(value = "POSTSALL", key = "#postId",cacheManager = ExpiryTimeConstant.Time.FIVE_MIN)
+    @Cacheable(value = "POSTSALL", cacheManager = ExpiryTimeConstant.Time.FIVE_MIN)
     @GetMapping("/posts")
     public List<Post> getAllPosts() {
         return postRepository.findAll();
     }
+
     @Cacheable(value = "POSTS", key = "#postId",cacheManager = ExpiryTimeConstant.Time.FIVE_MIN)
     @GetMapping("/posts/{postId}")
     public GenericResponse getPost(@PathVariable Long postId) {
